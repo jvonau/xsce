@@ -36,7 +36,7 @@
             mode=0644
 
 #TODO: Use vars instead of hardcoded values
-- name: Configure /etc/hosts
+- name: Configure LAN in /etc/hosts
   lineinfile: backup=yes
               dest=/etc/hosts
               regexp='^172\.18\.96\.1'
@@ -44,8 +44,18 @@
               owner=root
               group=root
               mode=0644
+  when: 'xsce_lan_iface != "none"'
 
-- name: Configure /etc/hosts
+- name: Configure WAN in /etc/hosts
+  lineinfile: backup=yes
+              dest=/etc/hosts
+              line='{{ ansible_default_ipv4.address }}            {{ xsce_hostname }}.{{ xsce_domain }}      {{ xsce_hostname }}'
+              owner=root
+              group=root
+              mode=0644
+  when: 'xsce_lan_iface == "none" and ansible_default_ipv4.address is defined'
+
+- name: Configure lo in /etc/hosts
   lineinfile: backup=yes
               dest=/etc/hosts
               regexp='^127\.0\.0\.1'
@@ -113,4 +123,3 @@
 - include: NM.yml
   tags:
     - network
-  
