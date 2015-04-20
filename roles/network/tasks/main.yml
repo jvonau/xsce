@@ -109,28 +109,38 @@
   shell: echo 1 > /etc/sysconfig/olpc-scripts/setup.d/installed/gateway
          creates=/etc/sysconfig/olpc-scripts/setup.d/installed/gateway
 
-- name: Get a list of ifcfg files to delete
-  shell: "ls -1 /etc/sysconfig/network-scripts/ifcfg-* | grep -v -e ifcfg-lo "
-  register: ifcfg_files
-  ignore_errors: True
-  changed_when: False
-
 - name: Stop the Access Point Hostapd program
   service: name=hostapd.service
            state=stopped
   ignore_errors: yes
 
-- name: Now delete all non-gateway ifcfg files
+- name: Now delete bridging ifcfg files
   shell: "rm -f {{ item }} "
   when: item|trim != discovered_wan_iface
   with_items:
-    - "{{ ifcfg_files.stdout_lines }}"
+    - "{{ ifcfg_slaves.stdout_lines }}"
 
 # might have wifi info if wireless is used as uplink.
-- name: Rename supplied gateway ifcfg file to WAN if present
-  shell: "mv /etc/sysconfig/network-scripts/ifcfg-{{ discovered_wan_iface }} /etc/sysconfig/network-scripts/ifcfg-WAN"
+- name: Rename supplied dhcp gateway ifcfg file to WAN1 if present
+  shell: "mv {{ item }}  /etc/sysconfig/network-scripts/ifcfg-WAN1"
   ignore_errors: True
+  with_items:
+    - "{{ ifcfg_gw_dhcp.stdout_lines }}"
   when: discovered_wan_iface != "none"
+
+- name: Rename supplied static gateway ifcfg file to WAN2 if present
+  shell: "mv {{ item }}  /etc/sysconfig/network-scripts/ifcfg-WAN2"
+  ignore_errors: True
+  with_items:
+    - "{{ ifcfg_gw_static.stdout_lines }}"
+  when: discovered_wan_iface != "none"
+
+# unused
+- name: Get a list of ifcfg files to delete
+  shell: "ls -1 /etc/sysconfig/network-scripts/ifcfg-* | grep -v -e ifcfg-lo "
+  register: ifcfg_files
+  ignore_errors: True
+  changed_when: False
 
 # set user_wan_iface: <device> for static
 # use wan_* for static info

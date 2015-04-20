@@ -3,13 +3,22 @@
   shell: "egrep -rn BRIDGE=br0 /etc/sysconfig/network-scripts | gawk -F'[-:]' '{print $3}'"
   register: ifcfg_slaves
   ignore_errors: True
-  changed_when: False
 
 # Discover  do we have a gateway? -- if ansible detects gateway, becomes WAN candidate
 - name: Finding gateway
   set_fact:
     discovered_wan_iface: "{{ ansible_default_ipv4.alias }}"
   when: 'ansible_default_ipv4.gateway is defined'
+
+- name: Get dhcp gateway from previous config
+  shell: "egrep -rn BOOTPROTO=dhcp /etc/sysconfig/network-scripts | gawk -F'[-:]' '{print $3}'"
+  register: ifcfg_gw_dhcp
+  ignore_errors: True
+
+- name: Get static gateway from previous config
+  shell: "egrep -rn GATEWAY= /etc/sysconfig/network-scripts | gawk -F'[-:]' '{print $3}'"
+  register: ifcfg_gw_static
+  ignore_errors: True
 
 # WIRELESS -- if any wireless is detected as gateway, it becomes WAN
 - name: Look for any wireless interfaces
