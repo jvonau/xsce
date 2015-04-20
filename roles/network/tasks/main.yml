@@ -128,12 +128,12 @@
     - "{{ ifcfg_gw_dhcp.stdout_lines }}"
   when: discovered_wan_iface != "none"
 
-- name: Rename supplied static gateway ifcfg file to WAN2 if present
-  shell: "mv {{ item }}  /etc/sysconfig/network-scripts/ifcfg-WAN2"
-  ignore_errors: True
-  with_items:
-    - "{{ ifcfg_gw_static.stdout_lines }}"
-  when: discovered_wan_iface != "none"
+#- name: Rename supplied static gateway ifcfg file to WAN2 if present
+#  shell: "mv {{ item }}  /etc/sysconfig/network-scripts/ifcfg-WAN2"
+#  ignore_errors: True
+#  with_items:
+#    - "{{ ifcfg_gw_static.stdout_lines }}"
+#  when: discovered_wan_iface != "none"
 
 # unused
 - name: Get a list of ifcfg files to delete
