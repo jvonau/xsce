@@ -31,8 +31,6 @@
       value: '{{ ansible_local["local_facts"]["xsce_branch"] }}'
     - option: 'runtime_commit'
       value: '{{ ansible_local["local_facts"]["xsce_commit"] }}'
-    - option: 'xsce_uuid'
-      value: '{{ ansible_local["local_facts"]["xsce_uuid"] }}'
     - option: 'runtime_date'
       value: '{{ ansible_date_time["iso8601"] }}'
     - option: 'runtime_php'
@@ -67,6 +65,12 @@
   set_fact:
     mysql_service: mysqld
   when: ansible_distribution_release == "based on Fedora 18"
+
+- name: Set kiwix source file name i686
+  set_fact:
+     kiwix_src_file: "kiwix-linux-i686.tar.bz2"
+     kiwix_src_bin_only: False
+  when: ansible_machine == "i686"
 
 - name: Set kiwix source file name x86_64
   set_fact:

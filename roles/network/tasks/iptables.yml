@@ -2,6 +2,7 @@
   service: name=firewalld
            enabled=no
            state=stopped
+  ignore_errors: yes
 
 - name: Install iptables service package
   yum: name=iptables-services

@@ -1,7 +1,3 @@
-RewriteEngine On
-RewriteCond %{HTTPS} off
-RewriteRule ^/admin(.*) https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L]
-
 Alias /admin "{{ admin_console_path }}"
 
 <Directory "{{ admin_console_path }}">

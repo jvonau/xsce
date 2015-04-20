@@ -21,6 +21,12 @@
    - tar
    - unzip
    - bzip2
+   - i2c-tools
+   - bridge-utils
+   - usbutils
+   - hostapd
+   - wpa_supplicant
+   - wget
   tags:
     - download
 
@@ -28,6 +34,7 @@
   yum: name={{ item }}
        state=latest
   with_items:
+   - NetworkManager
    - bash
    - iptables
    - vim-minimal # ejabberd erlang does not update this properly

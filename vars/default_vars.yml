@@ -20,6 +20,11 @@ service_filelist: "{{ xsce_config_file }}"
 use_cache: False # force cache use even when online
 no_network: False  # use cache or error out if cache does not exist
 
+# The platform variable adapts install to specific hardware (raspberry pi=rpi2)
+platform: ""
+hostapd: ""
+wpa_supplicant: ""
+
 # Users and Passwords
 # obtain a password hash with - python -c 'import crypt; print crypt.crypt("<plaintext>", "$6$<salt>")'
 
@@ -28,6 +33,8 @@ xsce_admin_passw_hash: $6$xsce51$D.IrrEeLBYIuJkGDmi27pZUGOwPFp98qpl3hxMwWV4hXigF
 
 # password is 12admin
 dummy: $6$xsce51$JhKBX/nwYLG0DDMTPN6radpgd//P881O/JX0GKFn32XUrR/D0VqnVFdvMdI.XW.eGaQY2VBCraLq6qiH0fbkD0
+
+
 
 # Languages
 default_language: en
@@ -44,19 +51,24 @@ lan_ip: 172.18.96.1
 lan_netmask: 255.255.224.0
 
 #Read docs/NETWORKING.rst
+# Gateway  mode
 xsce_lan_enabled: True
 xsce_wan_enabled: True
+ssid: XSCE
 ssh_port: 22
 gui_wan: True
-gui_port: 443
+adm_cons_force_ssl: False
+adm_cons_allow_downloads: False
 
 #intended for developers
+user_wan_iface: auto
 user_lan_iface: auto
 wan_ip: dhcp
 wan_netmask:
 wan_gateway:
 wan_nameserver:
 user_wan_iface: auto
+use_bridging: False
 detect_slaves: False
 #only change these if you know what you are doing
 

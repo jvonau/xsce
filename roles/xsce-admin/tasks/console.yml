@@ -7,7 +7,7 @@
     - pwauth
   tags:
     - download
-    
+
 - name: Create admin-console directory tree
   file: path={{ item }}
         mode=0755
@@ -16,12 +16,10 @@
         state=directory
   with_items:
     - "{{ admin_console_path }}"
-    - "{{ admin_console_path }}/assets"
     - "{{ admin_console_path }}/css"
-    - "{{ admin_console_path }}/fonts"
-    - "{{ admin_console_path }}/js"         
-            
-- name: Copy admin-console css files   
+    - "{{ admin_console_path }}/help"
+
+- name: Copy admin-console css files
   copy: src={{ item }}
         dest="{{ admin_console_path }}/css"
         mode=0644
@@ -30,23 +28,14 @@
   with_fileglob:
         - console/css/*.css
 
-- name: Copy admin-console js files   
+- name: Copy admin-console help files
   copy: src={{ item }}
-        dest="{{ admin_console_path }}/js"
+        dest="{{ admin_console_path }}/help"
         mode=0644
         owner=root
         group=root
   with_fileglob:
-        - console/js/*.js
-                
-- name: Copy admin-console fonts files   
-  copy: src={{ item }}
-        dest="{{ admin_console_path }}/fonts"
-        mode=0644
-        owner=root
-        group=root
-  with_fileglob:
-        - console/fonts/*       
+        - console/help/*
 
 - name: Install admin-console config file
   template: src=console/xs-console.conf.j2
@@ -54,18 +43,27 @@
             owner=root
             group=root
             mode=0644
+  when: not adm_cons_force_ssl
 
-- name: Install admin-console service 
+- name: Install admin-console config file with ssl support
+  template: src=console/xs-console-ssl.conf.j2
+            dest=/etc/httpd/conf.d/xs-console.conf
+            owner=root
+            group=root
+            mode=0644
+  when: adm_cons_force_ssl
+
+- name: Install admin-console service
   template: src=console/cmd-service.php
             dest="{{ admin_console_path }}/cmd-service.php"
             owner=root
             group=root
-            mode=0644            
+            mode=0644
 
 - name: Install admin-console app
   copy: src=console/index.html
         dest="{{ admin_console_path }}/index.html"
         owner=root
         group=root
-        mode=0644   
-                   
+        mode=0644
+
