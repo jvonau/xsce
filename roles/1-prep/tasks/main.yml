@@ -1,3 +1,7 @@
+# get local vars from scripts in /etc/ansible/facts.d
+- name: re-read facts
+  setup: filter=ansible_local
+
 - include: hw_discovery.yml
 - include: computed_vars.yml
 - include: detected_network.yml

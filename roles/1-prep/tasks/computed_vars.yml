@@ -1,7 +1,4 @@
-# get local vars from scripts in /etc/ansible/facts.d
 
-- name: re-read facts
-  setup: filter=ansible_local
 
 # moved from hw_discovery to here, after facts were read
 - name: Discover if this is one of the XO models
