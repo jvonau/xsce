@@ -1,5 +1,15 @@
 # Setup specific to the Raspberry Pi
-#
+##  DISCOVER ADAPTERS   ######
+- name: Detect an i2c rtc if it exists
+  shell: "i2cdetect -y 1 | grep -e 68 -e UU | wc | gawk '{print $1}'"
+  register: rtc_response
+  ignore_errors: yes
+
+- name: Record whether rtc hardware was detected
+  set_fact:
+     rtc_id: "DS3231"
+  when:  rtc_response.stdout > "0"
+
 #
 # kernel 3.18 requires a change to the device tree (and reboot)
 - name: Check for needing to enable i2c rtc device in config.txt
