@@ -9,13 +9,4 @@
      rtc_id: "DS3231"
   when:  rtc_response.stdout > "0"
 
-- name: Check of the identifier for tplink725 is present
-  shell: "lsusb | grep 0bda:8179 | wc |gawk '{print $1}'"
-  register: usb_response
-  ignore_errors: true
 
-- name: Use compiled hostapd, and wpa_supplicant if tplink WM725M
-  set_fact:
-     wifi_id: tplink_WM725M
-     driver_name: rtl871xdrv
-  when:  usb_response.stdout|int > 0
