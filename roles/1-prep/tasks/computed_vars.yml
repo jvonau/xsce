@@ -79,11 +79,17 @@
   set_fact:
     mysql_service: mariadb
 
-- name: Set mysqld service name to mysqld for fedora 18
+- name: Set facts Fedora 18
   set_fact:
     mysql_service: mysqld
     no_NM_reload: True
     is_F18: True
+  when: ansible_distribution_release == "based on Fedora 18" or ansible_distribution_version == "18"
+
+- name: Set facts CentOS
+  set_fact:
+    no_NM_reload: True
+    is_CentOS: True
   when: ansible_distribution_release == "based on Fedora 18" or ansible_distribution_version == "18"
 
 - name: Set kiwix source file name i686
