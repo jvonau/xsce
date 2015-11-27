@@ -21,4 +21,3 @@
 [branch "release-6.0"]
 	remote = origin
 	merge = refs/heads/release-6.0
-
