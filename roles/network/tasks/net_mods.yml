@@ -1,0 +1,11 @@
+- name: Disable network.service
+  service: name=network
+           enabled=no
+
+- name: Mask network.service
+  shell: 'systemctl mask network.service'
+
+# Network Manager starts this if needed
+- name: Disable wpa_supplicant
+  service: name=wpa_supplicant
+           enabled=no

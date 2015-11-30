@@ -9,6 +9,7 @@
     - python-devel
     - python-pip
     - zeromq3-devel
+    - cracklib-python
   tags:
     - download
 
@@ -94,6 +95,13 @@
         owner=root
         group=root
         state=link
+
+- name: Set permissions on sqlite db
+  file: dest="{{ cmdsrv_path }}/{{xsce_cmdsrv_dbname }}"
+        mode=0600
+        owner=root
+        group=root
+        state=touch
 
 - name: See if default config_vars.yml exists
   stat: path=/etc/xsce/config_vars.yml

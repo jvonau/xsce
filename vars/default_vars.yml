@@ -20,11 +20,6 @@ service_filelist: "{{ xsce_config_file }}"
 use_cache: False # force cache use even when online
 no_network: False  # use cache or error out if cache does not exist
 
-# The platform variable adapts install to specific hardware (raspberry pi=rpi2)
-platform: ""
-hostapd: ""
-wpa_supplicant: ""
-
 # Users and Passwords
 # obtain a password hash with - python -c 'import crypt; print crypt.crypt("<plaintext>", "$6$<salt>")'
 
@@ -54,22 +49,27 @@ lan_netmask: 255.255.224.0
 # Gateway  mode
 xsce_lan_enabled: True
 xsce_wan_enabled: True
-ssid: XSCE
 ssh_port: 22
 gui_wan: True
 adm_cons_force_ssl: False
 adm_cons_allow_downloads: False
 
+# Internal Wifi Access Point
+# Values are used if there is an internal wifi adapter and hostapd is enabled
+# The platform variable adapts install to specific hardware (raspberry pi=rpi2)
+hostapd_enabled: True
+host_ssid: "Internet in a Box"
+host_wifi_mode: g
+host_channel: 6
+
 #intended for developers
+exFAT_enabled: False
 user_wan_iface: auto
 user_lan_iface: auto
 wan_ip: dhcp
 wan_netmask:
 wan_gateway:
 wan_nameserver:
-user_wan_iface: auto
-use_bridging: False
-detect_slaves: False
 #only change these if you know what you are doing
 
 # Parameters by Aggregate Roles
@@ -107,17 +107,27 @@ squid_enabled: True
 wondershaper_install: True
 wondershaper_enabled: False
 
-#Gateway and Filters
+# Gateway and Filters
 gw_squid_whitelist: False
 gw_block_https: False
 xsce_gateway_enabled: True
 
+# Home page
+xsce_home_url: /xs-portal
+
+# if they are installed xsce_home_url can also be:
+
+#xsce_home_url: /wordpress
+#xsce_home_url: /dokuwiki
+
 # 4-SERVER-OPTIONS
+# sshd
+sshd_enabled: True
 
 # openvpn
 vpn_presence: unleashkids.org
 openvpn_server_port: 1194
-openvpn_cron_enabled: True
+openvpn_cron_enabled: False
 openvpn_install: True
 openvpn_enabled: False
 
@@ -132,6 +142,10 @@ postgresql_enabled: False
 # authserver
 authserver_install: True
 authserver_enabled: True
+
+# usb-lib
+usb_lib_install: True
+usb_lib_enabled: True
 
 # 5-XO-SERVICES
 
@@ -163,6 +177,10 @@ elgg_mysql_password: elgg4kids
 # OwnCloud
 owncloud_install: True
 owncloud_enabled: False
+
+# WordPress
+wordpress_install: False
+wordpress_enabled: False
 
 # 7-EDU-APPS
 
@@ -204,8 +222,8 @@ kalite_cron_enabled: False
 # 8-MGMT-TOOLS
 
 # sugar-stats
-sugar-stats_install: True
-sugar-stats_enabled: True
+sugar_stats_install: True
+sugar_stats_enabled: False
 
 # ajenti
 ajenti_install: True
@@ -225,6 +243,10 @@ watchdog:
   - httpd
   - postgresql
   - squid
+
+# teamviewer
+teamviewer_install: False
+teamviewer_enabled: False
 
 # vnstat
 vnstat_install: True

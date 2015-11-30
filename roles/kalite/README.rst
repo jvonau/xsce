@@ -9,24 +9,41 @@ KA Lite has two servers, a light httpd server that serves KA videos, and a cron 
 up cron jobs to download language packs and KA videos from the internet.  There are separate flags
 to enable these two servers.
 
-Configuration Parameters
-------------------------
-
-The following are set as defaults in var/mail.yml:
-
-* kalite_repo_url: "https://github.com/learningequality/ka-lite.git"
-* kalite_root: "/library/ka-lite"
-* kalite_user: kalite
-* kalite_password_hash: $6$<salt>$KHET0XRRsgAY.wOWyTOI3W7dyDh0ESOr48uI5vtk2xdzsU7aw0TF4ZkNuM34RmHBGMJ1fTCmOyVobo0LOhBlJ/
-* kalite_password: kalite
-* kalite_server_name: kalite
-* kalite_server_port: 8008
-* kalite_enabled: False
-* kalite_cron_enabled: False
-
 Access
 ------
 
-If enabled and with the above defaults KA Lite should be accessible at http://schoolserve:8008/
+If enabled and with the default settings KA Lite should be accessible at http://schoolserver:8008/
 
+To login to kalite enter
 
+User Name: Admin
+Password: changme
+
+Bulk Loading Videos
+-------------------
+
+Videos and their corresponding png images can be copied into /library/ka-lite/content and will
+be recognized the next time kalite is started.  The kalite website has instructions on getting
+videos with bitsync.  These videos are also smaller than the ones downloaded with the kalite
+admin interface.
+
+Configuration Parameters
+------------------------
+
+Please look in defaults/main.yml for the default values of the various install parameters.  Everything
+in this readme assumes the default values.
+
+Trouble Shooting
+----------------
+
+Starting with kalite 0.15 you can run the server manually with the following commands:
+
+* systemctl stop kalite-serve (make sure the systemd service is not running)
+* export KALITE_HOME=/library/ka-lite (point kalite to the right environment)
+* kalite start (start the server; can take more than 10 minutes in some environment)
+
+To return to using the systemd unit:
+
+* export KALITE_HOME=/library/ka-lite (point kalite to the right environment)
+* kalite stop
+* systemctl start kalite-serve

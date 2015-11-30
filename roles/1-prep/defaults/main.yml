@@ -1,21 +1,36 @@
-# These are defaults for routines, these entries should never be changed in this file.
+# These entries should never be changed in this file.
+# These are defaults for boolean routines, 
 installing: False
+exFAT_enabled: False
+no_NM_reload: False
+has_WAN: False
+wireless_lan_present: False
+is_F18: False
+udev_needs_patch: False
+strict_networking: False
+xsce_demo_mode: False
 
-#Set defaults for discovery process
+# Set default for discovered hardware
+driver_name: nl80211
+wifi_id: none
+rpi_model: none
+xo_model: none
+rtc_id: none
+
+# Set defaults for discovery process as strings
+wifi1: "not found"
+wifi2: "not found"
 discovered_wan_iface: "none"
 discovered_lan_iface: "none"
 discovered_wireless_iface: "none"
 xsce_wireless_lan_iface: "none"
 xsce_lan_iface: "none"
 xsce_wan_iface: "none"
-use_bridging: "False"
+device_gw: "none"
+has_ifcfg_gw: "none"
+has_wifi_gw: "none"
+ap_device: "none"
 
-#Set default for discovered hardware
-wireless_lan_present: False
-driver_name: nl80211
-wifi_id: none
-rpi_model: none
-xo_model: none
-rtc_id: none
+# WiFi
 ssid: XSCE
 hostapd_wait: 10

@@ -12,6 +12,13 @@
             owner=root
             mode=0666
 
+- name: Install rpmfusion-free-updates repo -- for exfat
+  template: dest=/etc/yum.repos.d/rpmfusion-free-updates.repo
+            src=rpmfusion-free-updates.repo
+            owner=root
+            mode=0666
+  when:     ansible_distribution == "Fedora"
+
 - name: Create /etc/xsce
   file: path=/etc/xsce
         owner=root

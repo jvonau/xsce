@@ -84,7 +84,7 @@
 
 <?php hard_link("/elgg", "Elgg", "Offline social media for students especially.", "/opt/elgg/index.php"); ?>
 
-<?php hard_link("/content", "Access Other Content", "TestPrep PDFs and a growing  list of documents."); ?>
+<?php hard_link("/content", "Access Other Content", "TestPrep PDFs and a growing  list of documents.","/library/content"); ?>
 
 <h2>Tools for Administrators</h2>
 
@@ -109,6 +109,11 @@
 <?php hard_link("/content", "Browse Other Content", "This is the place for local downloads."); ?>
 -->
 <BR><B> Enjoy Exploring & Building Your Library! &nbsp; <I>volunteer@unleashkids.org</I></B>
+<BR><BR>
+
+<?php require 'incl/footer.php'; ?>
+
+<BR>
 </div><!-- #main -->
 </div><!-- #wrapper -->
 </BODY>

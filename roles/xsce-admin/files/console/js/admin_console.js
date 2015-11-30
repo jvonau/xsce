@@ -1,6 +1,9 @@
 // admin_console.js
 // copyright 2015 Tim Moody
 
+var today = new Date();
+var dayInMs = 1000*60*60*24;
+
 var xsceContrDir = "/etc/xsce/";
 var consoleJsonDir = "/common/assets/";
 var ansibleFacts = {};
@@ -14,10 +17,15 @@ var zimCatalog = {}; // working composite catalog of kiwix, installed, and wip z
 var zimLangs = {}; // working list of iso codes in zimCatalog
 var zimGroups = {}; // zim ids grouped by language and category
 var kiwixCatalog = {}; // catalog of kiwix zims, read from file downloaded from kiwix.org
+var kiwixCatalogDate = new Date; // date of download, stored in json file
 var installedZimCat = {}; // catalog of installed, and wip zims
+
+var rachelStat = {}; // installed, enabled and whether content is installed and which is enabled
 
 var zimsInstalled = []; // list of zims already installed
 var zimsScheduled = []; // list of zims being installed (wip)
+
+var downloadedFiles = {};
 
 var langNames = []; // iso code, local name and English name for languages for which we have zims sorted by English name for language
 var topNames = ["ara","eng","spa","fra","hin","por"]; // languages for top language menu
@@ -33,6 +41,12 @@ sysStorage.zims_selected_size = 0;
 // flag must be set to false before use
 
 var globalAjaxErrorFlag = false;
+
+// Set jquery ajax calls not to cache in browser
+$.ajaxSetup({ cache: false });
+
+// get default help
+getHelp("Overview.rst");
 
 // Set up nav
 
@@ -82,6 +96,7 @@ $("#Test-CMD").click(function(){
 });
 
 $("#List-CMD").click(function(){
+	// xsce-cmdsrv-ctl LIST-LIBR '{"sub_dir":"downloads/zims"}'
   sendCmdSrvCmd("LIST", listCmdHandler);
 });
 
@@ -179,7 +194,31 @@ $("#KIWIX-LIB-REFRESH").click(function(){
   getKiwixCatalog();
 });
 
+$("#DOWNLOAD-RACHEL").click(function(){
+	if (rachelStat.content_installed == true){
+	  var rc = confirm("RACHEL content is already in the library.  Are you sure you want to download again?");
+	  if (rc != true)
+	    return;
+	}
+  sendCmdSrvCmd("INST-RACHEL", genericCmdHandler, "DOWNLOAD-RACHEL");
+  alert ("RACHEL scheduled to be downloaded and installed.\n\nPlease view Utilities->Display Job Status to see the results.");
+});
+
+$("#DEL-DOWNLOADS").click(function(){
+	var r = confirm("Press OK to Delete Checked Files");
+  if (r != true)
+    return;
+	button_feedback("#DEL-DOWNLOADS", true);
+  delDownloadedFiles();
+  getDownloadList();
+  button_feedback("#DEL-DOWNLOADS", false);
+});
+
 // Util Buttons
+
+$("#CHGPW").click(function(){
+	changePassword();
+});
 
 $("#JOB-STATUS-REFRESH").click(function(){
 	button_feedback("#JOB-STATUS-REFRESH", true);
@@ -225,9 +264,26 @@ $("#GET-INET-SPEED2").click(function(){
   getInetSpeed2();
 });
 
-// Other Objects
+// Static Wan Fields
+
 $("#gui_static_wan").change(function(){
   gui_static_wanVal();
+});
+
+$("#gui_static_wan_ip").on('blur', function(){
+  staticIpVal("#gui_static_wan_ip");
+});
+
+$("#gui_static_wan_netmask").on('blur', function(){
+  staticIpVal("#gui_static_wan_netmask");
+});
+
+$("#gui_static_wan_gateway").on('blur', function(){
+  staticIpVal("#gui_static_wan_gateway");
+});
+
+$("#gui_static_wan_nameserver").on('blur', function(){
+  staticIpVal("#gui_static_wan_nameserver");
 });
 
 function button_feedback(id, grey_out) {
@@ -243,6 +299,34 @@ function button_feedback(id, grey_out) {
 }
 
 // Field Validations
+
+function xsce_hostnameVal()
+{
+  //alert ("in xsce_hostnameVal");
+  xsce_hostname = $("#xsce_hostname").val();
+  consoleLog(xsce_hostname);
+  if (xsce_hostname == ""){
+    alert ("Host Name can not be blank.");
+    $("#xsce_hostname").val(config_vars['xsce_hostname'])
+    setTimeout(function () {
+      $("#xsce_hostname").focus(); // hack for IE
+    }, 100);
+    return false;
+  }
+  // regex must match to be valid
+  //var hostRegex = new RegExp("^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]*))$");
+  var hostRegex = /^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]*))$/;
+  if (! hostRegex.test(xsce_hostname)) {
+    alert ("Host Name can only have letters, numbers, and dashes and may not start with a dash.");
+    //$("#xsce_hostname").val(config_vars['xsce_domain'])
+    setTimeout(function () {
+      $("#xsce_hostname").focus(); // hack for IE
+    }, 100);
+    return false
+  }
+
+  return true;
+}
 
 function xsce_domainVal()
 {
@@ -270,40 +354,58 @@ function xsce_domainVal()
 
   return true;
 }
-
 function gui_static_wanVal()
 {
-  alert ("in gui_static_wanVal");
-  // if static wan is checked make sure visit ip addr field
+  // we come here if the checkbox was clicked
+  // if it is now checked then it is newly so and we assign defaults
+
+  // alert ("in gui_static_wanVal");
+
   if ($("#gui_static_wan").prop('checked')){
-    setTimeout(function () {
-      $("#gui_static_wan_ip_lsd").focus(); // hack for IE
-    }, 100);
+    staticIpDefaults ();
   }
 }
 
-function gui_static_wan_ip_lsdVal()
-{
-  //alert ("in gui_static_wan_ip_lsdVal");
-  gui_static_wan_ip_lsd = $("#gui_static_wan_ip_lsd").val();
-  consoleLog(gui_static_wan_ip_lsd);
-  rc = false;
-  if ($("#gui_static_wan").prop('checked')){
-    if (gui_static_wan_ip_lsd == ""){
-      alert ("Static IP Address can not be blank if use a static WAN IP Address is checked.");
+function staticIpDefaults () {
+	if(typeof ansibleFacts.ansible_default_ipv4.address === 'undefined'){
+		$("#gui_static_wan_ip").val("127.0.0.1");
+    $("#gui_static_wan_netmask").val("255.255.255.0");
+    $("#gui_static_wan_gateway").val("127.0.0.1");
+    $("#gui_static_wan_nameserver").val("127.0.0.1");
+  }
+  else {
+    $("#gui_static_wan_ip").val(ansibleFacts.ansible_default_ipv4.address);
+    $("#gui_static_wan_netmask").val(ansibleFacts.ansible_default_ipv4.netmask);
+    $("#gui_static_wan_gateway").val(ansibleFacts.ansible_default_ipv4.gateway);
+    $("#gui_static_wan_nameserver").val(ansibleFacts.ansible_default_ipv4.gateway);
+  }
+}
+
+function staticIpVal(fieldId) {
+    //Check Format
+    var fieldVal = $(fieldId).val();
+    var ip = fieldVal.split(".");
+    var valid = true;
+
+    if (ip.length != 4) {
+        valid = false;
     }
-    else if (isNaN(gui_static_wan_ip_lsd)){
-      alert ("Static IP Address must be a number.");
+
+    //Check Numbers
+    for (var c = 0; c < 4; c++) {
+        //Perform Test
+        if ( ip[c] <= -1 || ip[c] > 255 ||
+             isNaN(parseFloat(ip[c])) ||
+             !isFinite(ip[c])  ||
+             ip[c].indexOf(" ") !== -1 ) {
+
+             valid = false;
+        }
     }
-    else if (parseInt(gui_static_wan_ip_lsd) < 2 || parseInt(gui_static_wan_ip_lsd) > 250){
-      alert ("Static IP Address must be greater than 2 and less than 250.");
-    }
-    else
-      rc = true;
-    }
-    if (rc == false){
+    if (valid == false){
+    	alert ("Invalid: Field must be N.N.N.N where N is a number between 0 and 255");
       setTimeout(function () {
-        $("#gui_static_wan_ip_lsd").focus(); // hack for IE
+        $(fieldId).focus(); // hack for IE
       }, 100);
       return false;
     }
@@ -441,24 +543,24 @@ function initConfigVars()
   if(typeof ansibleFacts.ansible_default_ipv4.address === 'undefined'){
     html += "Not Found<BR>";
     $("#gui_static_wan").prop('checked', false);
-    wan_ip_msd = "";
-    gui_static_wan_ip_lsd = "";
   }
   else {
     html += "Found<BR>";
     html += "WAN: " + ansibleFacts.ansible_default_ipv4.address + " on " + ansibleFacts.ansible_default_ipv4.alias + "<BR>";
-    wan_ip = ansibleFacts.ansible_default_ipv4.address.split(".");
-    //consoleLog(wan_ip);
-    wan_ip_msd = wan_ip[0] + "." + wan_ip[1] + "." + wan_ip[2] + ".";
-    $("#gui_static_wan_ip_lsd").val(wan_ip[3]);
-    $("#gui_wan_ip_msd").val(wan_ip_msd);
   }
   //consoleLog(config_vars);
-  // html += "LAN:
+  html += "LAN: on " + xsce_ini.network.computed_lan  + "<BR>";
   html += "Network Mode: " + xsce_ini.network.xsce_network_mode + "<BR>";
   $("#discoveredNetwork").html(html);
   if (typeof config_vars.gui_desired_network_role === "undefined")
   setRadioButton("gui_desired_network_role", xsce_ini.network.xsce_network_mode)
+}
+
+function initStaticWanVars() {
+	// if use static wan is checked they are assumed to be valid
+	if ($("#gui_static_wan").prop('checked') == false){
+    staticIpDefaults ();
+  }
 }
 
 function setConfigVars ()
@@ -488,6 +590,32 @@ function setConfigVars ()
     return true;
   }
 
+function changePassword ()
+{
+	if ($("#xsce_admin_new_password").val() != $("#xsce_admin_new_password2").val()){
+    	alert ("Invalid: New Password and Repeat New Password do NOT Match.");
+      setTimeout(function () {
+        $("#xsce_admin_new_password").focus(); // hack for IE
+      }, 100);
+      return false;
+    }
+
+  cmd_args = {}
+  cmd_args['user'] = $("#xsce_admin_user").val();
+  cmd_args['oldpasswd'] = $("#xsce_admin_old_password").val();
+  cmd_args['newpasswd'] = $("#xsce_admin_new_password").val();
+
+  cmd = "CHGPW " + JSON.stringify(cmd_args);
+  sendCmdSrvCmd(cmd, changePasswordSuccess, "CHGPW");
+  //alert ("Changing Password.");
+  return true;
+}
+
+function changePasswordSuccess ()
+{
+  alert ("Password Changed.");
+  return true;
+}
   function getXsceIni (data)
   {
     //alert ("in getXsceIni");
@@ -497,6 +625,9 @@ function setConfigVars ()
     var html = jstr.replace(/\n/g, "<br>").replace(/[ ]/g, "&nbsp;");
     $( "#xsceIni" ).html(html);
     //consoleLog(jqXHR);
+
+    // Set Password Fields
+    $( "#xsce_admin_user").val(xsce_ini['xsce-admin']['xsce_admin_user']);
     return true;
   }
   function getWhitelist (data)
@@ -564,6 +695,7 @@ function setConfigVars ()
   {
     command = "RESTART-KIWIX";
     sendCmdSrvCmd(command, genericCmdHandler);
+    alert ("Restarting Kiwix Server.");
     return true;
   }
 
@@ -582,6 +714,7 @@ function setConfigVars ()
 
   function procKiwixCatalog() {
     readKiwixCatalog();
+    getZimStat();
     procZimCatalog();
     alert ("Kiwix Catalog has been downloaded.");
   }
@@ -698,7 +831,8 @@ function readKiwixCatalog() { // Reads kiwix catalog from file system as json
     dataType: 'json'
   })
   .done(function( data ) {
-    kiwixCatalog = data;
+  	kiwixCatalogDate = Date.parse(data['download_date']);
+  	kiwixCatalog = data['zims'];
     consoleLog(kiwixCatalog);
   })
   .fail(jsonErrhandler);
@@ -706,6 +840,12 @@ function readKiwixCatalog() { // Reads kiwix catalog from file system as json
   return resp;
 }
 
+function checkKiwixCatalogDate() {
+	today = new Date();
+	if (today - kiwixCatalogDate > 30 * dayInMs){
+		alert ("Kiwix Catalog is Older than 30 days.\n\nPlease click Refresh Kiwix Catalog in the menu.");
+	}
+}
 function procZimCatalog() {
   // Uses installedZimCat, kiwixCatalog, langCodes, and langGroups
   // Calculates zimCatalog, zimGroups, langNames, zimsInstalled, zimsScheduled
@@ -803,6 +943,124 @@ function sortZimLangs(){
     });
 }
 
+function getRachelStat(){
+  command = "GET-RACHEL-STAT";
+  sendCmdSrvCmd(command, procRachelStat);
+  return true;
+}
+
+function procRachelStat(data) {
+  rachelStat = data;
+
+  setRachelDiskSpace();
+  var html = "";
+  var htmlNo = "<b>NO</b>";
+  var htmlYes = "<b>YES</b>";
+  var installedHtml = htmlNo;
+  var enabledHtml = htmlNo;
+  var contentHtml = htmlNo;
+
+  if (rachelStat["status"] == "INSTALLED")
+    installedHtml = htmlYes;
+
+  if (rachelStat["status"] == "ENABLED"){
+    installedHtml = htmlYes;
+    enabledHtml = htmlYes;
+  }
+
+  if (rachelStat["content_installed"] == true)
+    contentHtml = htmlYes;
+
+  $("#rachelInstalled").html(installedHtml);
+  $("#rachelEnabled").html(enabledHtml);
+  $("#rachelContentFound").html(contentHtml);
+
+  var moduleList = [];
+
+  if (rachelStat["content_installed"] == true){
+    for (title in rachelStat.enabled) {
+      moduleList.push(title);
+    }
+
+    moduleList.sort();
+
+    for (idx in moduleList) {
+    	html += '<tr><td>' + moduleList[idx] + '</td><td>';
+    	if (rachelStat.enabled[moduleList[idx]].enabled == true)
+    	  html += htmlYes + '</td></tr>'
+    	else
+    		html += htmlNo + '</td></tr>'
+    }
+    $("#rachelModules tbody").html(html);
+    $("#rachelModules").show();
+  }
+  else
+  	$("#rachelModules").hide();
+}
+
+function getDownloadList(){
+	var zimCmd = 'LIST-LIBR {"sub_dir":"downloads/zims"}';
+	var rachelCmd = 'LIST-LIBR {"sub_dir":"downloads/rachel"}';
+	setDnldDiskSpace();
+	$.when(sendCmdSrvCmd(zimCmd, procDnldZimList), sendCmdSrvCmd(rachelCmd, procDnldRachelList)).done(procDnldList);
+
+  return true;
+}
+
+function procDnldZimList(data){
+	downloadedFiles['zims'] = data;
+}
+
+function procDnldRachelList(data){
+	downloadedFiles['rachel'] = data;
+}
+
+function procDnldList(){
+
+  $("#downloadedFilesRachel").html(calcDnldListHtml(downloadedFiles.rachel.file_list));
+  $("#downloadedFilesZims").html(calcDnldListHtml(downloadedFiles.zims.file_list));
+
+}
+
+function calcDnldListHtml(list) {
+	var html = "";
+	list.forEach(function(entry) {
+    console.log(entry);
+    html += '<tr>';
+    html += "<td>" + entry['filename'] + "</td>";
+    html += "<td>" + entry['size'] + "</td>";
+    html +=  '<td><input type="checkbox" name="' + entry['filename'] + '" id="' + entry['filename'] + '">' + "</td>";
+    html +=  '</tr>';
+  });
+  return html;
+}
+
+function delDownloadedFiles() {
+
+	delDownloadedFileList("downloadedFilesRachel", "rachel");
+	delDownloadedFileList("downloadedFilesZims", "zims");
+}
+
+function delDownloadedFileList(id, sub_dir) {
+  var delArgs = {}
+	var fileList = [];
+  $("#" + id + " input").each(function() {
+    if (this.type == "checkbox") {
+      if (this.checked)
+      fileList.push(this.name);
+    }
+  });
+
+  if (fileList.length == 0)
+    return;
+
+  delArgs['sub_dir'] = sub_dir;
+  delArgs['file_list'] = fileList;
+
+  var delCmd = 'DEL-DOWNLOADS ' + JSON.stringify(delArgs);
+  sendCmdSrvCmd(delCmd, genericCmdHandler);
+}
+
 // Util functions
 
 function getJobStat()
@@ -869,7 +1127,7 @@ function procJobStat(data)
     $(this).scrollTop(this.scrollHeight);
   });
   today = new Date();
-  $( "#statusJobsRefreshTime" ).html("Last Refreshed: <b>" + today + "</b>");
+  $( "#statusJobsRefreshTime" ).html("Last Refreshed: <b>" + today.toLocaleString() + "</b>");
 }
 
 function cancelJob(job_id)
@@ -998,6 +1256,29 @@ function procSysStorage()
 }
 
 function setZimDiskSpace(){
+  var html = calcLibraryDiskSpace();
+
+  html += "Total Space Required: &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";
+
+  html += "<b>" + readableSize(sysStorage.zims_selected_size) + "</b>"
+  $( "#zimDiskSpace" ).html(html);
+}
+
+function setRachelDiskSpace(){
+  var html = calcLibraryDiskSpace();
+
+  html += "Total Space Required: &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";
+
+  html += "<b>" + "23G (X 2 for Download)" + "</b>"
+  $( "#rachelDiskSpace" ).html(html);
+}
+
+function setDnldDiskSpace() {
+	var html = calcLibraryDiskSpace();
+	$( "#dnldDiskSpace" ).html(html);
+}
+
+function calcLibraryDiskSpace(){
   var html = "Library Space Available : <b>";
   var avail_in_megs;
   var zims_selected_size;
@@ -1009,9 +1290,7 @@ function setZimDiskSpace(){
 
     html += readableSize(avail_in_megs * 1024) + "</b><BR>";
 
-    html += "Total Space Selected: &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>";
-    html += readableSize(sysStorage.zims_selected_size) + "</b>"
-    $( "#instZimsDiskSpace" ).html(html);
+    return html;
 }
 
 function updateZimDiskSpace(cb){
@@ -1127,6 +1406,23 @@ function getHelp(arg)
   return true;
 }
 
+function showAboutSummary()
+{
+  //consoleLog("in showAboutSummary");
+  var html = '<table>';
+
+  html += '<tr><td ><b>Version:</b></td>';
+  html += '<td>' + xsce_ini.runtime.runtime_branch + '</td></tr>';
+  html += '<td><b>Date Installed:</b></td>';
+  html += '<td>' + xsce_ini.runtime.runtime_date + '</td></tr>';
+  html += '<td><b>Commit ID:</b></td>';
+  html += '<td>' + xsce_ini.runtime.runtime_commit + '</td></tr>';
+
+  html += "</tr></table>";
+
+  $( "#aboutSummaryText" ).html( html );
+}
+
 function formCommand(cmd_verb, args_name, args_obj)
 {
   cmd_args = {}
@@ -1146,7 +1442,7 @@ function sendCmdSrvCmd(command, callback, buttonId, errCallback, cmdArgs) {
   //   buttonId - Optional ID of button to disable and re-enable
   //   errCallback - Optional function to call if return from cmdsrv has error object; not the same as an error in ajax
   //   cmdArgs - Optional arguments to original command for use by errCallback
-  //   TODO  - add assignmentVar to can assign variable before running callback
+  //   TODO  - add assignmentVar so can assign variable before running callback
   //alert ("in sendCmdSrvCmd(");
   //consoleLog ('buttonid = ' + buttonId);;
   if (buttonId === undefined)

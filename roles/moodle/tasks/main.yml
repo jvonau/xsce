@@ -71,6 +71,10 @@
            enabled=yes
            state=started
 
+- name: fetch the administrative password for moodle
+  shell: cat /etc/moodle/adminpw
+  register: moodlepw
+
 - name: add moodle to service list
   ini_file: dest='{{ service_filelist }}'
             section=moodle
@@ -80,8 +84,10 @@
     - option: name
       value: Moodle
     - option: description
-      value: "Access the Moodle learning management system."
+      value: '"Access the Moodle learning management system."'
     - option: path
       value: /moodle
     - option: enabled
       value: "{{ moodle_enabled }}"
+    - option: adminpw
+      value: "{{ moodlepw.stdout }}"

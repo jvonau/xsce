@@ -1,0 +1,25 @@
+#!/bin/bash
+
+# the playbook does nothing if the following already exists so exit
+
+if [ -f /etc/xsce/config_vars.yml ]
+then
+  exit 0
+fi
+
+if [ ! -f install-init.yml ]
+then
+ echo "XSCE Playbook not found."
+ echo "Please run this command from the top level of the git repo."
+ echo "Exiting."
+ exit 1
+fi
+
+# Mark local_vars as do not track to preserve local changes
+git update-index --assume-unchanged vars/local_vars.yml
+
+PLAYBOOK="install-init.yml"
+INVENTORY="ansible_hosts"
+
+export ANSIBLE_LOG_PATH="xsce-install.log"
+ansible-playbook -i $INVENTORY $PLAYBOOK --connection=local

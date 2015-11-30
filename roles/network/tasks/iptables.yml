@@ -1,7 +1,18 @@
 - name: Disable firewalld service
   service: name=firewalld
+           enabled=no
+
+- name: Use larger hammer to disable firewalld (2 symbolic links involved)
+  shell: "systemctl disable firewalld.service"
+
+- name: Mask firewalld service
+  shell: 'systemctl mask firewalld'
+
+- name: Stop firewalld service
+  service: name=firewalld
            state=stopped
   ignore_errors: yes
+  when: not installing
 
 - name: Remove iptables.service file from /etc
   file: path=/etc/systemd/system/iptables.service 
@@ -18,12 +29,12 @@
     - download
 
 - name: Install iptables services
-  template: backup=yes
-            src={{ item.src }}
-            dest={{ item.dest }}
-            owner=root
-            group=root
-            mode=0755
+  template: src={{ item.0 }}
+            dest={{ item.1 }}
+            owner='root'
+            group='root'
+            mode={{ item.2 }}
   with_items:
-    - { src: "gateway/iptables-config" , dest: "/etc/sysconfig/iptables-config" }
-    - { src: "gateway/xs-gen-iptables" , dest: "/usr/bin/xs-gen-iptables" }
+   - { 0: 'gateway/iptables-config', 1: '/etc/sysconfig/iptables-config', 2: '0644' }
+   - { 0: 'gateway/check-LAN', 1: '/usr/bin/check-LAN', 2: '0755' }
+
