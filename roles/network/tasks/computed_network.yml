@@ -58,7 +58,7 @@
 - name: undo gui-static-wan by requesting new template file
   set_fact:
      has_WAN: False
-  when:  gui_static_wan is defined and gui_static_wan == "False" and gui_static_wan_ip is defined and gui_static_wan_ip != "unset" and not xsce_demo_mode
+  when:  (gui_static_wan is defined and gui_static_wan == "False") or (gui_static_wan_ip is defined and gui_static_wan_ip != "unset") and not xsce_demo_mode
 
 # we need to have an interface name for ifcfg-WAN to be able to change gateway
 # the DEVICE from the gui. Thanks to George for proving my point about knowing
