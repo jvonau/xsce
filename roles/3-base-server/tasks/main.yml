@@ -11,12 +11,12 @@
            state=restarted
   when: not installing
 
-- name: Setting Graphical Login
-  file: path=/etc/systemd/system/default.target
-        src=/lib/systemd/system/graphical.target
-        state=link
-        force=yes
-  when: installing
+#- name: Setting Graphical Login
+#  file: path=/etc/systemd/system/default.target
+#        src=/lib/systemd/system/graphical.target
+#        state=link
+#        force=yes
+#  when: installing
 
 # If we got here we're done
 - name: Create hidden xsce-prepped file 
