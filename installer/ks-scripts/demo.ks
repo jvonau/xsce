@@ -30,9 +30,14 @@ autopart --type=plain
 clearpart --all --initlabel --drives=sda
 
 %post
-
 # run ./runtags network on first boot
 systemctl enable xsce-prep
+
+# get rid of custom local_vars
+cd /opt/schoolsever/xsce
+git reset --hard 
+git checkout master
+
 %end
 #%anaconda
 #pwpolicy root --minlen=0 --minquality=1 --notstrict --nochanges --emptyok
