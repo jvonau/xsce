@@ -1,4 +1,5 @@
 - include: computed_network.yml
+  when: not installing
   tags:
     - network
     - network-discover
@@ -145,6 +146,7 @@
   with_items:
     - xs_wan_device
     - xs_lan_device
+  when: not installing
   tags:
     - network
 
