@@ -23,9 +23,6 @@
 
 - include: yum.yml
 
-- include: xo.yml
-  when: xo_model != "none" or osbuilder is defined
-
 - include: cmdsrv.yml
 
 # Patch Fedora 21+ so usbmount works
