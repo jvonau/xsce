@@ -33,6 +33,7 @@
   when: ansible_distribution == "CentOS"
 
 - include: yum.yml
+- include: cmdsrv.yml
 - include: patch_udev.yml
 
 # Put conditional includes for platforms here
