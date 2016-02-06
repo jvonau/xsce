@@ -14,6 +14,7 @@
   when: ansible_distribution == "CentOS"
 
 - include: yum.yml
+
 - include: xo.yml
   when: xo_model != "none" or osbuilder is defined
 
