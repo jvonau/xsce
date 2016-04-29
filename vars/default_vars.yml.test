@@ -7,7 +7,6 @@
 # Installation Constants
 xsce_base: /opt/schoolserver
 xsce_dir: "{{ xsce_base }}/xsce"
-content_base: "/library"
 pip_packages_dir: "{{ xsce_base }}/pip-packages"
 yum_packages_dir: "{{ xsce_base }}/yum-packages"
 downloads_dir: "{{ xsce_base }}/downloads"
@@ -20,6 +19,11 @@ service_filelist: "{{ xsce_config_file }}"
 # The following two variables control OFFLINE installs
 use_cache: False # force cache use even when online
 no_network: False  # use cache or error out if cache does not exist
+
+# The platform variable adapts install to specific hardware (raspberry pi=rpi2)
+platform: ""
+hostapd: ""
+wpa_supplicant: ""
 
 # Users and Passwords
 # obtain a password hash with - python -c 'import crypt; print crypt.crypt("<plaintext>", "$6$<salt>")'
@@ -54,14 +58,6 @@ ssh_port: 22
 gui_wan: True
 adm_cons_force_ssl: False
 adm_cons_allow_downloads: False
-
-# Internal Wifi Access Point
-# Values are used if there is an internal wifi adapter and hostapd is enabled
-# The platform variable adapts install to specific hardware (raspberry pi=rpi2)
-hostapd_enabled: True
-host_ssid: "Internet in a Box"
-host_wifi_mode: g
-host_channel: 6
 
 #intended for developers
 exFAT_enabled: False
@@ -108,31 +104,17 @@ squid_enabled: True
 wondershaper_install: True
 wondershaper_enabled: False
 
-# Gateway and Filters
+#Gateway and Filters
 gw_squid_whitelist: False
 gw_block_https: False
 xsce_gateway_enabled: True
 
-# Home page
-# Default to the gui where the selection is made or override in localvars
-xsce_home_url: /admin
-
-# you can change xsce_home_url in local_vars in order to get a different home page
-# these could be one of the following (assuming they are enabled):
-
-#xsce_home_url: /home
-#xsce_home_url: /xs-portal - the alternate home page
-#xsce_home_url: /wordpress
-#xsce_home_url: /wiki - either dokuwiki or mediawiki
-
 # 4-SERVER-OPTIONS
-# sshd
-sshd_enabled: True
 
 # openvpn
 vpn_presence: unleashkids.org
 openvpn_server_port: 1194
-openvpn_cron_enabled: False
+openvpn_cron_enabled: True
 openvpn_install: True
 openvpn_enabled: False
 
@@ -147,18 +129,6 @@ postgresql_enabled: False
 # authserver
 authserver_install: True
 authserver_enabled: True
-
-# usb-lib
-usb_lib_install: True
-usb_lib_enabled: True
-
-# docker
-docker_install: True
-docker_enabled: False
-
-# Common UNIX printing system
-cups_install: True
-cups_enabled: False
 
 # 5-XO-SERVICES
 
@@ -176,7 +146,6 @@ xo_services_enabled: True
 # MYSQL
 mysql_install: True
 mysql_enabled: False
-phpmyadmin_install: True
 phpmyadmin_enabled: False
 # password is fixmysql
 # mysql_root_password: $6$xsce51$3ICIW0CLWxxMW2a3yrHZ38ukZItD5tcadL4rWcE9D.qIGStxhh8rRsaSxoj3b.MYxI/VRDNjpzSYK/V6zkWFI0
@@ -184,27 +153,19 @@ mysql_root_password: fixmysql
 
 # ELGG
 elgg_install: True
-elgg_enabled: False
+elgg_enabled: True
 # elgg_mysql_password: $6$xsce51$jeTwnATcbaa92xo0QBTgjLBU.5aVDDrbKeNyyC99R/TAWz6pvfzj.L7lfnOVVjD78nxqT.gkNn6XZmuRV0W3o1
 elgg_mysql_password: elgg4kids
 
 # OwnCloud
 owncloud_install: True
-owncloud_enabled: False
-
-# WordPress
-wordpress_install: True
-wordpress_enabled: False
-
-# Dokuwiki
-dokuwiki_install: True
-dokuwiki_enabled: False
+owncloud_enabled: True
 
 # 7-EDU-APPS
 
 # Moodle
 moodle_install: True
-moodle_enabled: False
+moodle_enabled: True
 
 # Internet-in-a-Box
 iiab_install: True
@@ -212,23 +173,18 @@ iiab_enabled: True
 
 # Pathagar
 pathagar_install: True
-pathagar_enabled: False
-
-# Calibre
-calibre_install: True
-calibre_enabled: False
-calibre_port: 8010
+pathagar_enabled: True
 
 # RACHEL
 rachel_install: True
-rachel_enabled: False
+rachel_enabled: True
 rachel_content_found: False
 rachel_url: /rachel
 rachel_doc_root: /var/www/html{{ rachel_url }}
 
 # Kiwix-Serve
 kiwix_install: True
-kiwix_serve_enabled: False
+kiwix_serve_enabled: True
 xsce_zim_path: /library/zims
 
 # KA Lite
@@ -239,39 +195,26 @@ kalite_password_hash: $6$<salt>$KHET0XRRsgAY.wOWyTOI3W7dyDh0ESOr48uI5vtk2xdzsU7a
 kalite_password: kalite
 kalite_server_name: kalite
 kalite_server_port: 8008
-kalite_enabled: False
+kalite_enabled: True
 kalite_cron_enabled: False
-
-#Sugarizer
-<<<<<<< HEAD
-sugarizer_install: True
-sugarizer_enabled: False
-=======
-sugarizer_install
-sugarizer_enabled
->>>>>>> add install and enabled for new features
 
 # 8-MGMT-TOOLS
 
-# schooltool
-schooltool_install: True
-schooltool_enabled: False
-
 # sugar-stats
 sugar_stats_install: True
-sugar_stats_enabled: False
+sugar_stats_enabled: True
 
 # ajenti
 ajenti_install: True
-ajenti_enabled: False
+ajenti_enabled: True
 
 # munin
 munin_install: True
-munin_enabled: False
+munin_enabled: True
 
 # monit
 monit_install: True
-monit_enabled: False
+monit_enabled: True
 watchdog:
   - sshd
   - idmgr
@@ -281,16 +224,16 @@ watchdog:
   - squid
 
 # teamviewer
-teamviewer_install: False
-teamviewer_enabled: False
+teamviewer_install: True
+teamviewer_enabled: True
 
 # vnstat
 vnstat_install: True
-vnstat_enabled: False
+vnstat_enabled: True
 
 # awstats -- sumarizes http access logs
 awstats_install: True
-awstats_enabled: False
+awstats_enabled: True
 
 # xovis
 xovis_install: True
