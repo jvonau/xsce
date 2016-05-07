@@ -4,7 +4,7 @@ After=syslog.target network.target local-fs.target
 
 [Service]
 Type=forking
-ExecStart=/bin/calibre-server --daemon --port {{ calibre_port }} --with-library {{ calibre_dbpath }} 
+ExecStart=/bin/calibre-server --daemon --port {{ calibre_port }} --with-library {{ calibre_dbpath }}
 
 [Install]
 WantedBy=multi-user.target
