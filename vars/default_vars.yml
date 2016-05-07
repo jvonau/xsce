@@ -242,6 +242,7 @@ kalite_server_port: 8008
 kalite_enabled: False
 kalite_cron_enabled: False
 
+<<<<<<< HEAD
 #Sugarizer
 <<<<<<< HEAD
 sugarizer_install: True
@@ -250,6 +251,8 @@ sugarizer_enabled: False
 sugarizer_install
 sugarizer_enabled
 >>>>>>> add install and enabled for new features
+=======
+>>>>>>> add phpmyadmin_install - remove for now
 
 # 8-MGMT-TOOLS
 
