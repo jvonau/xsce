@@ -46,6 +46,25 @@
     - option: 'runtime_base_ver'
       value: '{{ xsce_base_ver }}'
 
+- name: add context section
+  ini_file: dest='{{ xsce_config_file }}'
+            section=context
+            option='{{ item.option }}'
+            value='{{ item.value }}'
+  with_items:
+    - option: 'kernel'
+      value: '{{ ansible_kernel }}'
+    - option: 'memory_mb'
+      value: '{{ ansible_memtotal_mb }}'
+    - option: 'swap_mb'
+      value: '{{ ansible_swaptotal_mb }}'
+#    - option: 'machine_id'
+#      value: '{{ ansible_machine_id }}'
+    - option: 'product_id'
+      value: '{{ ansible_product_uuid }}'
+#    - option: 'library_gb'
+#      value: '{{ ansible_devices.sda.partitions.sda3.size }}'
+
 # Put all computed vars here so derive properly from any prior var file
 - name: Set port 80 for Admin Console
   set_fact:

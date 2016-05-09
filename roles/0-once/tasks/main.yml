@@ -13,10 +13,14 @@
 - include: centos.yml
   when: ansible_distribution == "CentOS"
 
-- include: yum.yml
 - include: fedora.yml
   when: ansible_distribution == "Fedora"
+
+- include: fix_ansible_version.yml
+- include: yum.yml
 - include: cmdsrv.yml
+- include: chrony.yml
+- include: prelim.yml
 - include: patch_udev.yml
 
 # Put conditional includes for platforms here
