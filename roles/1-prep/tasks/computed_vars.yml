@@ -13,11 +13,6 @@
      xsce_preload: '{{ ansible_local["local_facts"]["xsce_preload"] }}'
      ansible_ver: '{{ ansible_local["local_facts"]["ansble_version"] }}'
 
-- name: Ansible Version
-  set_fact: 
-     ansible1: False
-  when: ansible_ver != "1.9.6"
-
 - name: Defaulting xsce_base_ver
   set_fact:
      xsce_base_ver: 0
@@ -32,6 +27,11 @@
   set_fact:
      xsce_gui_ver: 0
   when: xsce_menu_ver == ""
+
+- name: Ansible Version
+  set_fact: 
+     ansible1: False
+  when: ansible_ver != "1.9.6"
 
 - name: Defaulting xsce_prepped
   set_fact:
