@@ -1,5 +1,9 @@
 # Keep in sync with 1-prep
+<<<<<<< HEAD
 new_base_ver: 3
+=======
+new_base_ver: 2
+>>>>>>> ansible2
 
 # must keep roles/xsce-admin/defaults/main.yml sync'd
 admin_console_path: "{{ xsce_base }}/admin_console"
@@ -13,6 +17,10 @@ is_F22: False
 is_F23: False
 is_F24: False
 is_F25: False
+<<<<<<< HEAD
+=======
+ansbile1: True
+>>>>>>> ansible2
 
 installing: True
 

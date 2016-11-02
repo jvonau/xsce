@@ -9,7 +9,12 @@
 - include: centos.yml
   when: ansible_distribution == "CentOS"
 
+- include: packages.yml
+  when: not ansible1
+
 - include: yum.yml
+  when: ansible1 and not ansible_distribution == "CentOS"
+
 - include: chrony.yml
 - include: cmdsrv.yml
 
@@ -73,4 +78,3 @@
  
 - include: selinux.yml
   when: ansible_selinux is defined and ansible_version >= '2' and ansible_selinux or ansible_selinux['status'] is defined and ansible_version < '2' and ansible_selinux['status'] != 'disabled'
-
