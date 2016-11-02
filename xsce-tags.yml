@@ -9,7 +9,10 @@
 
   roles:
       - { role: 1-prep, tags: ['prep','platform','base'] }
+<<<<<<< HEAD
       - { role: squid-cache, tags: ['squidcache'] }
+=======
+>>>>>>> ansible2
       - { role: 3-base-server, tags: ['base'] }
       - { role: 4-server-options, tags: ['options'] }
       - { role: 5-xo-services, tags: ['xo-services'] }
