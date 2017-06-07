@@ -25,9 +25,11 @@
     kiwix_first_pass: True
   when: kiwix_first_pass_test.changed
 
+- debug: var=kiwix_first_pass_test
+- debug: var=kiwix_first_pass
 - name: Copy test.zim file
   copy: src=test.zim
-        dest="{{ kiwix_content_path }}"
+        dest={{ kiwix_content_path }}/test.zim
         mode=0644
         owner=root
         group=root
@@ -50,6 +52,14 @@
         mode=0755
         state=directory
 
+- name: enable the mods which permit apache to proxy
+  apache2_module: name={{ item }}
+  with_items:
+    - proxy
+    - proxy_html
+    - rewrite
+  when: is_debian
+
 - name: Unarchive it to permanent location - bin only
   unarchive: src="{{ downloads_dir }}/{{ kiwix_src_file }}"
              dest="{{ xsce_base }}/kiwix/bin"
@@ -60,6 +70,19 @@
 # workaround because unarchive does not set ownership properly
 - name: Set kiwix ownership
   command: "chown -R root:root {{ xsce_base }}"
+
+# workaround because kiwix-serve does not stay running
+- name: Make an entry in crontab to restart every hour
+# *  *  *  *  * user-name  command to be executed
+  lineinfile: line="15 *  *  *  * root /bin/systemctl restart kiwix-serve.service"
+              dest=/etc/crontab
+  when: is_debuntu
+
+- name: Make an entry in crontab to restart every hour
+# *  *  *  *  * user-name  command to be executed
+  lineinfile: line="15 *  *  *  * root /usr/bin/systemctl restart kiwix-serve.service"
+              dest=/etc/crontab
+  when: is_redhat
 
 # Create kiwix service
 
@@ -74,6 +97,10 @@
     - { src: 'kiwix-serve.service.j2', dest: '/etc/systemd/system/kiwix-serve.service', mode: '0655'}
 
 #    - { src: 'kiwix-serve-init.j2', dest: '/usr/libexec/kiwix-serve-init', mode: '0755'}
+    - { src: 'xsce-make-kiwix-lib', dest: '/usr/bin/xsce-make-kiwix-lib', mode: '0755'}
+    - { src: 'xsce-make-kiwix-lib.py', dest: '/usr/bin/xsce-make-kiwix-lib.py', mode: '0755'}
+    - { src: 'xsce-make-apache-config.py', dest: '/usr/bin/xsce-make-apache-config.py', mode: '0755'}
+
 
 - name: add kiwix to service list
   ini_file: dest='{{ service_filelist }}'
@@ -99,16 +126,6 @@
       value: "{{ kiwix_content_path }}"
     - option: enabled
       value: "{{ kiwix_serve_enabled }}"
-
-- name: Copy xsce-make-kiwix-lib to /usr/bin
-  copy: src={{ item.src }}
-        dest={{ item.dest }}
-        mode=0755
-        owner=root
-        group=root
-  with_items:
-    - { src: 'xsce-make-kiwix-lib', dest: '/usr/bin/xsce-make-kiwix-lib'}
-    - { src: 'xsce-make-kiwix-lib.py', dest: '/usr/bin/xsce-make-kiwix-lib.py'}
 
 - name: Enable kiwix-serve service
   service: name=kiwix-serve

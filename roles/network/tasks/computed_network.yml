@@ -68,6 +68,7 @@
   set_fact:
     device_gw: "none"
     user_wan_iface: "none"
+    xsce_gateway_enabled: "False"
   when: gui_desired_network_role is defined and gui_desired_network_role == "LanController"
 
 # device_gw is used with the LAN detection and LAN's ifcfg file deletion.
@@ -95,6 +96,7 @@
 - name: Setting GUI wants Appliance
   set_fact:
     user_lan_iface: "none"
+    xsce_gateway_enabled: "False"
   when: gui_desired_network_role is defined and gui_desired_network_role == "Appliance"
 
 # gui wants Gateway
@@ -157,17 +159,17 @@
             option='{{ item.option }}'
             value='{{ item.value }}'
   with_items:
-  - option: 'wan_enabled'
+  - option: 'xsce_wan_enabled'
     value: '{{ xsce_wan_enabled }}'
-  - option: 'user_gateway'
+  - option: 'user_wan_iface'
     value: '{{ user_wan_iface }}'
-  - option: 'computed_gateway'
+  - option: 'xsce_wan_iface'
     value: '{{ xsce_wan_iface }}'
-  - option: 'lan_enabled'
+  - option: 'xsce_lan_enabled'
     value: '{{ xsce_lan_enabled }}'
-  - option: 'user_lan'
+  - option: 'user_lan_iface'
     value: '{{ user_lan_iface }}'
-  - option: 'computed_lan'
+  - option: 'xsce_lan_iface'
     value: '{{ xsce_lan_iface }}'
   - option: 'xsce_network_mode'
     value: '{{ xsce_network_mode }}'

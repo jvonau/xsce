@@ -3,8 +3,17 @@
         password={{ xsce_admin_passw_hash }}
         update_password=on_create
         
+- name: Create a wheel group
+  group: name=wheel
+         state=present
+
+- name: Create a sudo group
+  group: name=sudo
+         state=present
+  when: is_redhat
+
 - name: Add user to wheel group
-  user: name={{ xsce_admin_user }} groups=wheel
+  user: name={{ xsce_admin_user }} groups=wheel,sudo
   
 - name: Create root .ssh
   file: path=/root/.ssh
@@ -32,10 +41,10 @@
               state=present
               dest=/etc/sudoers
 
-- name: remove the line which lets wheel sudo without password
-  lineinfile: regexp='^%wheel.*NOPASSWD.*' 
-              state=absent 
-              dest=/etc/sudoers
+- name: lets wheel sudo without password
+  lineinfile: 
+     line: "%wheel ALL= NOPASSWD: ALL"
+     dest: /etc/sudoers
 
 - name: remove the line which requires tty
   lineinfile: regexp=requiretty 

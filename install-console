@@ -2,7 +2,7 @@
 
 # copy var files to /etc/xsce for subsequent use
 
-./install-init
+#./install-init
 
 # if not the first run, repo location is here
 
@@ -10,7 +10,14 @@ if [ -f /etc/xsce/xsce.env ]
 then
   . /etc/xsce/xsce.env
   cd $XSCE_DIR
+else
+  XSCE_DIR=/opt/schoolserver/xsce
+  mkdir -p /etc/xsce
+  touch /etc/xsce/config_vars.yml
 fi
+
+# don't track vars/local_vars.yml
+git update-index --assume-unchanged vars/local_vars.yml
 
 PLAYBOOK="xsce-base.yml"
 INVENTORY="ansible_hosts"

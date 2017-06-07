@@ -1,4 +1,5 @@
 # get local vars from scripts in /etc/ansible/facts.d
+# on first run, this will generate UUID
 
 - name: re-read facts
   setup: filter=ansible_local
@@ -37,8 +38,6 @@
       value: '{{ ansible_local["local_facts"]["xsce_branch"] }}'
     - option: 'runtime_commit'
       value: '{{ ansible_local["local_facts"]["xsce_commit"] }}'
-    - option: 'xsce_uuid'
-      value: '{{ ansible_local["local_facts"]["xsce_uuid"] }}'
     - option: 'runtime_date'
       value: '{{ ansible_date_time["iso8601"] }}'
     - option: 'runtime_php'
@@ -71,7 +70,9 @@
   set_fact:
     mysql_install: True
     mysql_enabled: True
-  when: elgg_enabled or rachel_enabled or owncloud_enabled or phpmyadmin_enabled or wordpress_enabled
+
+# we decided to enable mysql unconditionally
+#  when: elgg_enabled or rachel_enabled or owncloud_enabled or phpmyadmin_enabled or wordpress_enabled or iiab_menu_install
 
 - name: Turn on mongodb if sugarizer enabled
   set_fact:
@@ -106,6 +107,11 @@
     no_NM_reload: True
     is_F18: True
   when: ansible_distribution_release == "based on Fedora 18" or ansible_distribution_version == "18"
+
+- name: Set mysql service name to mysql for debian
+  set_fact:
+    mysql_service: mysql
+  when: ansible_distribution == "Debian" 
 
 - name: Fedora 20
   set_fact:

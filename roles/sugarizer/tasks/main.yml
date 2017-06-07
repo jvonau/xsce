@@ -3,8 +3,7 @@
            dest={{ downloads_dir }}/{{ sugarizer_version }}.tar.gz
   
 - name: Untar it to target location
-  unarchive: src={{ downloads_dir }}/{{ sugarizer_version }}.tar.gz
-             dest={{ sugarizer_location }}
+  command: tar xzf {{ downloads_dir }}/{{ sugarizer_version }}.tar.gz -C {{ sugarizer_location }}
 
 - name: Create a symbolic link from generic url to version specific location
   file: dest={{ sugarizer_location }}/sugarizer
@@ -12,7 +11,8 @@
         state=link
 
 - name: Install sugarizer required packages
-  yum: name={{ item }}
+  package: name={{ item }} 
+           state=present
   with_items:
     - nodejs
     - npm
@@ -28,7 +28,13 @@
             mode=0644
   with_items:
      - { src: 'sugarizer.service.j2' , dest: '/etc/systemd/system/sugarizer.service'}
-     - { src: 'sugarizer.ini' , dest: '{{ sugarizer_location }}/server' }
+     - { src: 'sugarizer.ini' , dest: '{{ sugarizer_location }}/sugarizer/server' }
+#     - { src: 'sugarizer.conf' , dest: '/etc/apache2/sites-available' }
+
+#- name: Create the symlink enabling the rewrite
+#  file: src=/etc/apache2/sites-available/sugarizer.conf
+#        dest=/etc/apache2/sites-enabled/sugarizer.conf
+#        state=link
 
 - name: Create the express framework for node.js
   shell:  npm install

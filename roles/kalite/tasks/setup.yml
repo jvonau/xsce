@@ -7,19 +7,9 @@
         mode=0755
         state=directory
 
-- name: correct Doc link
-  file: path=/library/ka-lite/httpsrv/static/html
-        src=/usr/share/kalite/docs/_build/html
-        state=link
-
 - name: Run the setup using kalite manage
-  command: "/usr/bin/kalite manage setup --username={{ kalite_admin_user }} --password={{ kalite_admin_password }} --noinput"
+  command: "{{ kalite_program }} manage setup --username={{ kalite_admin_user }} --password={{ kalite_admin_password }} --noinput"
   environment:
      KALITE_HOME: "{{ kalite_root }}"
   async: 900
   poll: 10
-
-- name: Kluge to get kalite docs in 0.16.x
-  command: pip install -U --force-reinstall ka-lite
-           creates=/usr/share/kalite/docs/_build/html/installguide/install_all.html
-  

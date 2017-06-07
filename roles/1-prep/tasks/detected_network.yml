@@ -55,8 +55,8 @@
 - name: Test for internet access
   get_url: url="{{ xsce_download_url }}/heart-beat.txt" dest=/tmp/heart-beat.txt
   ignore_errors: True
-  async: 10
-  poll: 2
+#  async: 10
+#  poll: 2
   register: internet_access_test
 
 - name: Set has_internet_connection true if wget succeeded
@@ -97,6 +97,7 @@
 - name: Setting has ifcfg gw based on device if found
   set_fact:
     has_ifcfg_gw: "{{ item|trim }}"
+  ignore_errors: True
   when: ifcfg_gw_device.stdout_lines is defined and item|trim != "" and item|trim != "/etc/sysconfig/network-scripts/ifcfg-LAN"
   with_items:
       - "{{ ifcfg_gw_device.stdout_lines }}"
@@ -150,7 +151,8 @@
      wifi1: "{{ item|trim }}"
      discovered_wireless_iface: "{{ item|trim }}"
   when: item|trim != "" and item|trim != discovered_wan_iface
-  with_items: wireless_list1.stdout_lines
+  with_items: 
+      - "{{ wireless_list1.stdout_lines }}"
 
 # WIRELESS -- Sigh... Not all drivers update /proc/net/wireless correctly
 - name: Look for any wireless interfaces take 2
@@ -245,10 +247,15 @@
     xsce_lan_iface: "{{ discovered_lan_iface }}"
   when: 'discovered_lan_iface != "none" and num_lan_interfaces == "1"'
 
+- name: for debian, always use bridging
+  set_fact:
+     xsce_lan_iface: br0
+  when: 'discovered_lan_iface != "none" and num_lan_interfaces >= "1" and is_debian'
+
 - name: 2 or more devices on the LAN - use bridging
   set_fact:
      xsce_lan_iface: br0
-  when: 'discovered_lan_iface != "none" and num_lan_interfaces >= "2"'
+  when: 'discovered_lan_iface != "none" and num_lan_interfaces >= "2" and not is_debian'
 
 - name: WiFi is on the LAN - use bridging
   set_fact:
