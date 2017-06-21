@@ -17,7 +17,8 @@
     - httpd
     - php
     - php-curl
-    - php-sqlite
+# fedora fail 1
+#    - php-sqlite
   tags:
     - download
   when: not is_debian
