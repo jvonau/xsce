@@ -15,11 +15,14 @@ if [ "x$KITCHEN_LOG" = "xDEBUG" -o "x$OMNIBUS_ANSIBLE_LOG" = "xDEBUG" ]; then
   set -x
 fi
 
-if [ ! $(which ansible-playbook) ]; then
-  if [ -f /etc/fedora-release ]; then
+if [ -f /etc/fedora-release ]; then
+  if [ ! $(which ansible-playbook) ]; then
     dnf install -y git ansible gawk wget redhat-lsb-core
   fi
-  else
+  exit 0
+fi
+
+if [ ! $(which ansible-playbook) ]; then
   if [ -f /etc/centos-release ] || [ -f /etc/redhat-release ] || [ -f /etc/oracle-release ] || [ -f /etc/system-release ] || grep -q 'Amazon Linux' /etc/system-release; then
 
     # Install required Python libs and pip
@@ -106,5 +109,4 @@ if [ ! $(which ansible-playbook) ]; then
       yum install -y python-crypto python-paramiko
     fi
   fi
-
 fi
