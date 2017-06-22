@@ -1,4 +1,5 @@
 is_fedora: True
+is_redhat: True
 dns_service: named
 dns_user: named
 proxy: squid
