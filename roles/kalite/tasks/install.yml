@@ -8,27 +8,31 @@
   tags:
     - download
 
-- name: Downoad kalite with pip
-  pip: name=ka-lite version={{ kalite_version }}
-       extra_args="--download {{ pip_packages_dir }}"
-  when: not {{ use_cache }} and not {{ no_network }}
-  tags:
-    - download2
-
 - name: Grap the requirements file
   get_url: url={{ kalite_requirements }} dest={{ pip_packages_dir }}/kalite.txt
   when: not {{ use_cache }} and not {{ no_network }}
   tags:
     - download2
 
-- name: Install dependencies with pip
+- name: Download kalite dependencies with pip
   pip: requirements={{ pip_packages_dir }}/kalite.txt
-       virtualenv={{ kalite_venv }}
-       virtualenv_site_packages=no
-       extra_args="--disable-pip-version-check"
+       extra_args="--disable-pip-version-check --download {{ pip_packages_dir }}"
   when: not {{ use_cache }} and not {{ no_network }}
   tags:
     - download2
+
+- name: Download kalite with pip
+  pip: name=ka-lite version={{ kalite_version }}
+       extra_args="--disable-pip-version-check --download {{ pip_packages_dir }}"
+  when: not {{ use_cache }} and not {{ no_network }}
+  tags:
+    - download2
+
+- name: Install ka-lite dependencies with pip
+  pip: requirements={{ pip_packages_dir }}/kalite.txt
+       virtualenv={{ kalite_venv }}
+       virtualenv_site_packages=no
+       extra_args="--disable-pip-version-check --no-index --find-links=file://{{ pip_packages_dir }}"
 
 - name: Install ka-lite with pip
   pip: name=ka-lite
