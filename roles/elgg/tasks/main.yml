@@ -1,12 +1,12 @@
+- name: Determine if software is already expanded
+  stat: path=/opt/elgg/index.php
+  register: elgg
+
 - name: download current version from our copy
   shell: wget {{ xsce_download_url }}/elgg-{{ elgg_version }}.zip -c -P {{ downloads_dir }}
   when: not {{ use_cache }} and not {{ no_network }}
   tags:
     - download2
-
-- name: Determine if software is already expanded
-  stat: path=/opt/elgg/index.php
-  register: elgg
 
 # use unzip and shell until unarchive works again
 # unarchive: dest=/opt/
@@ -20,6 +20,7 @@
   file: path=/opt/elgg-{{elgg_version }}
         owner=apache
         recurse=yes
+  when: elgg.stat.exists is defined and not elgg.stat.exists
 
 - name: Create a link to the versioned elgg folder
   file: src=./elgg-{{ elgg_version }}
